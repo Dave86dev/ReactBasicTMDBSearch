@@ -1,11 +1,20 @@
 
 import React, { useState, useEffect } from 'react';
-import { bringTopRated } from '../../services/apiCalls';
+import { MovieCard } from '../../common/MovieCard/MovieCard';
+import { bringTopRated, bringFilmsTitle } from '../../services/apiCalls';
 import './Home.css';
 
 export const Home = () => {
 
     const [movies, setMovies] = useState([]);
+    const [searchedMovies, setSearchedMovies] = useState([])
+
+    const [search, setSearch] = useState('');
+
+    const inputHandler = (e) => {
+
+        setSearch(e.target.value);
+    }
 
     useEffect(() => {
 
@@ -25,22 +34,73 @@ export const Home = () => {
 
     }, [movies]);
 
-    return (
+    useEffect(() => {
 
+        if (search !== '') {
+
+            bringFilmsTitle(search)
+                .then(
+                    searchResults => {
+                        setSearchedMovies(searchResults.data.results);
+                    }
+                )
+                .catch(error => console.log(error));
+        }
+
+    }, [search]);
+
+    return (
         <div>
+
+            {/* I place the search bar here which will always be available */}
+
+            <div className="searchDesign">
+                <input
+                    className="inputDesign"
+                    name="search"
+                    type="text"
+                    placeholder="search your movies here..."
+                    onChange={(e) => inputHandler(e)}
+                />
+            </div>
+
             {
                 (movies.length > 0) ? (
-                    <div>
-                        {
-                            movies.map(
-                                movie => {
-                                    return (
-                                        <div key={movie.id}>{movie.title}</div>
-                                    )
-                                }
-                            )
-                        }
-                    </div>
+
+                    (search !== '') ? (
+
+                        <div className="showcaseDesign">
+
+                            {
+
+                                searchedMovies.map(
+                                    movie => {
+                                        return (
+                                            <div key={movie.id}><MovieCard film={movie} /></div>
+                                        )
+                                    }
+                                )
+                            }
+
+                        </div>
+
+                    ) : (
+
+                        <div className="showcaseDesign">
+                            {
+                                movies.slice(0, 10).map(
+                                    movie => {
+                                        return (
+                                            <div key={movie.id}><MovieCard film={movie} /></div>
+                                        )
+                                    }
+                                )
+                            }
+                        </div>
+
+                    )
+
+
                 )
 
                     : (
@@ -50,9 +110,6 @@ export const Home = () => {
 
 
             }
-        </div>
-
-
-
+        </div >
     )
 }
